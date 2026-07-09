@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'providers/auth_provider.dart';
+import 'providers/opportunity_provider.dart';
+import 'screens/auth/onboarding_screen.dart';
+import 'screens/home_router.dart';
+import 'providers/application_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,16 +21,35 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ALU LaunchPad',
-      theme: ThemeData(
-        primaryColor: const Color(0xFFE63946), // ALU Red
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Poppins',
-      ),
-      home: const Scaffold(
-        body: Center(child: Text('LaunchPad is alive')),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => OpportunityProvider()),
+        ChangeNotifierProvider(create: (_) => ApplicationProvider()),
+      ],
+      child: MaterialApp(
+        title: 'ALU LaunchPad',
+        theme: ThemeData(
+          primaryColor: const Color(0xFFE63946),
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Poppins',
+        ),
+        home: const AuthWrapper(),
       ),
     );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
+    if (authProvider.isLoggedIn) {
+      return const HomeRouter();
+    }
+    return const OnboardingScreen();
   }
 }
