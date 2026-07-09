@@ -1,20 +1,91 @@
 import 'package:flutter/material.dart';
-import '../../screens/student/explore_screen.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/application_provider.dart';
+import '../../models/application_model.dart';
+import 'explore_screen.dart';
 
 class StudentHomeScreen extends StatelessWidget {
   const StudentHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final applicationProvider = context.watch<ApplicationProvider>();
+    final user = authProvider.appUser;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Student Home')),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ExploreScreen()));
-          },
-          child: const Text('Explore Opportunities'),
-        ),
+      appBar: AppBar(
+        title: Text('Hello, ${user?.name ?? ''}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => authProvider.signOut(),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE63946),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                icon: const Icon(Icons.search, color: Colors.white),
+                label: const Text('Explore Opportunities', style: TextStyle(color: Colors.white)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                  );
+                },
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('My Applications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<Application>>(
+              stream: applicationProvider.applicationsForStudent(user!.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text('You haven\'t applied to anything yet', style: TextStyle(color: Colors.grey)),
+                  );
+                }
+
+                final applications = snapshot.data!;
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: applications.length,
+                  itemBuilder: (context, index) {
+                    final app = applications[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        title: Text(app.opportunityTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('Status: ${app.status}'),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
