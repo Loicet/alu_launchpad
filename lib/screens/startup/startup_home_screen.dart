@@ -5,40 +5,60 @@ import '../../providers/opportunity_provider.dart';
 import '../../models/opportunity_model.dart';
 import 'post_opportunity_screen.dart';
 import 'view_applicants_screen.dart';
+import 'startup_profile_screen.dart';
 
-class StartupHomeScreen extends StatelessWidget {
+class StartupHomeScreen extends StatefulWidget {
   const StartupHomeScreen({super.key});
+
+  @override
+  State<StartupHomeScreen> createState() => _StartupHomeScreenState();
+}
+
+class _StartupHomeScreenState extends State<StartupHomeScreen> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      const _StartupHomeContent(),
+      const StartupProfileScreen(),
+    ];
+
+    return Scaffold(
+      body: pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFFE63946),
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+}
+
+class _StartupHomeContent extends StatelessWidget {
+  const _StartupHomeContent();
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final opportunityProvider = context.watch<OpportunityProvider>();
     final user = authProvider.appUser;
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Welcome, ${user.name}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => authProvider.signOut(),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text('Welcome, ${user?.name ?? ''}')),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFFE63946),
         icon: const Icon(Icons.add),
         label: const Text('Post Opportunity'),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PostOpportunityScreen()),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const PostOpportunityScreen()));
         },
       ),
       body: StreamBuilder<List<Opportunity>>(
-        stream: opportunityProvider.opportunitiesByStartup(user.uid),
+        stream: opportunityProvider.opportunitiesByStartup(user!.uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
