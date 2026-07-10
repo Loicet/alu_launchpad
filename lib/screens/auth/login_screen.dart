@@ -76,8 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             email: _emailController.text.trim(),
                             password: _passwordController.text.trim(),
                           );
-                          // No manual navigation needed — AuthWrapper in main.dart
-                          // automatically switches screens when isLoggedIn becomes true
+                          if (success && context.mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
                         },
                   child: authProvider.isLoading
                       ? const SizedBox(

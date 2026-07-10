@@ -77,6 +77,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    debugPrint('AUTH WRAPPER: isLoggedIn=${authProvider.isLoggedIn} appUser=${authProvider.appUser?.role}');
 
     if (authProvider.isLoggedIn) {
       return const HomeRouter();

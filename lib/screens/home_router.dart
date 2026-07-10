@@ -12,9 +12,12 @@ class HomeRouter extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final role = authProvider.appUser?.role;
 
-    if (role == 'startup') {
-      return const StartupHomeScreen();
+    if (role == null) {
+      debugPrint('HOME ROUTER: role is null, appUser=${authProvider.appUser}');
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    return const StudentHomeScreen(); // default to student
+    debugPrint('HOME ROUTER: role=$role');
+    if (role == 'startup') return const StartupHomeScreen();
+    return const StudentHomeScreen();
   }
 }

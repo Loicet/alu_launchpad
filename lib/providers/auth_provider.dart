@@ -8,22 +8,25 @@ class AuthProvider extends ChangeNotifier {
 
   AppUser? _appUser;
   bool _isLoading = false;
+  bool _isFetching = false;
   String? _errorMessage;
 
   AppUser? get appUser => _appUser;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isLoggedIn => _appUser != null;
+  bool get isLoggedIn => _authService.currentUser != null && _appUser != null;
 
   AuthProvider() {
-    // Listen to Firebase's login/logout stream and react automatically
     _authService.authStateChanges.listen((User? firebaseUser) async {
       if (firebaseUser == null) {
         _appUser = null;
-      } else {
+        notifyListeners();
+      } else if (_appUser == null && !_isFetching) {
+        _isFetching = true;
         _appUser = await _authService.getUserData(firebaseUser.uid);
+        _isFetching = false;
+        notifyListeners();
       }
-      notifyListeners(); // tells every screen watching this to rebuild
     });
   }
 
@@ -44,12 +47,21 @@ class AuthProvider extends ChangeNotifier {
       role: role,
     );
 
-    _isLoading = false;
     if (error != null) {
+      _isLoading = false;
       _errorMessage = error;
       notifyListeners();
       return false;
     }
+
+    final firebaseUser = _authService.currentUser;
+    if (firebaseUser != null) {
+      _isFetching = true;
+      _appUser = await _authService.getUserData(firebaseUser.uid);
+      _isFetching = false;
+    }
+
+    _isLoading = false;
     notifyListeners();
     return true;
   }
@@ -61,12 +73,21 @@ class AuthProvider extends ChangeNotifier {
 
     String? error = await _authService.logIn(email: email, password: password);
 
-    _isLoading = false;
     if (error != null) {
+      _isLoading = false;
       _errorMessage = error;
       notifyListeners();
       return false;
     }
+
+    final firebaseUser = _authService.currentUser;
+    if (firebaseUser != null) {
+      _isFetching = true;
+      _appUser = await _authService.getUserData(firebaseUser.uid);
+      _isFetching = false;
+    }
+
+    _isLoading = false;
     notifyListeners();
     return true;
   }

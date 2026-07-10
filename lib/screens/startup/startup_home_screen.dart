@@ -14,10 +14,11 @@ class StartupHomeScreen extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final opportunityProvider = context.watch<OpportunityProvider>();
     final user = authProvider.appUser;
+    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Welcome, ${user?.name ?? ''}'),
+        title: Text('Welcome, ${user.name}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -37,7 +38,7 @@ class StartupHomeScreen extends StatelessWidget {
         },
       ),
       body: StreamBuilder<List<Opportunity>>(
-        stream: opportunityProvider.opportunitiesByStartup(user!.uid),
+        stream: opportunityProvider.opportunitiesByStartup(user.uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

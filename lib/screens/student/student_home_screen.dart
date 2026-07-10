@@ -4,9 +4,42 @@ import '../../providers/auth_provider.dart';
 import '../../providers/application_provider.dart';
 import '../../models/application_model.dart';
 import 'explore_screen.dart';
+import 'student_profile_screen.dart';
 
-class StudentHomeScreen extends StatelessWidget {
+class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
+
+  @override
+  State<StudentHomeScreen> createState() => _StudentHomeScreenState();
+}
+
+class _StudentHomeScreenState extends State<StudentHomeScreen> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      const _StudentHomeContent(),
+      const StudentProfileScreen(),
+    ];
+
+    return Scaffold(
+      body: pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFFE63946),
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudentHomeContent extends StatelessWidget {
+  const _StudentHomeContent();
 
   @override
   Widget build(BuildContext context) {
@@ -15,15 +48,7 @@ class StudentHomeScreen extends StatelessWidget {
     final user = authProvider.appUser;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Hello, ${user?.name ?? ''}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => authProvider.signOut(),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text('Hello, ${user?.name ?? ''}')),
       body: Column(
         children: [
           Padding(
@@ -31,10 +56,6 @@ class StudentHomeScreen extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE63946),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text('Explore Opportunities', style: TextStyle(color: Colors.white)),
                 onPressed: () {

@@ -58,6 +58,18 @@ class AuthService {
     if (doc.exists) {
       return AppUser.fromMap(doc.data() as Map<String, dynamic>, uid);
     }
+    // Firestore doc missing — build fallback from Firebase Auth
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser != null) {
+      final fallback = AppUser(
+        uid: uid,
+        email: firebaseUser.email ?? '',
+        name: firebaseUser.displayName ?? '',
+        role: 'student',
+      );
+      await _firestore.collection('users').doc(uid).set(fallback.toMap());
+      return fallback;
+    }
     return null;
   }
 

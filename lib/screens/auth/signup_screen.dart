@@ -103,13 +103,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   onPressed: authProvider.isLoading
                       ? null
                       : () async {
-                          await authProvider.signUp(
+                          bool success = await authProvider.signUp(
                             email: _emailController.text.trim(),
                             password: _passwordController.text.trim(),
                             name: _nameController.text.trim(),
                             role: widget.role,
                           );
-                          // AuthWrapper handles navigation automatically on success
+                          if (success && context.mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
                         },
                   child: authProvider.isLoading
                       ? const SizedBox(
