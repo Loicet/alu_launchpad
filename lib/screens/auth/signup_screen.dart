@@ -50,12 +50,12 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text('ALU Email', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('ALU Student Email', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  hintText: 'you@alu.edu',
+                  hintText: 'you@alustudent.com',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -103,19 +103,38 @@ class _SignupScreenState extends State<SignupScreen> {
                   onPressed: authProvider.isLoading
                       ? null
                       : () async {
-                          bool success = await authProvider.signUp(
-                            email: _emailController.text.trim(),
+                          final email = _emailController.text.trim();
+
+                          if (_nameController.text.trim().isEmpty ||
+                              email.isEmpty ||
+                              _passwordController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please fill in all fields')),
+                            );
+                            return;
+                          }
+
+                          if (!email.toLowerCase().endsWith('@alustudent.com')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please use your ALU student email address (@alustudent.com)'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          await authProvider.signUp(
+                            email: email,
                             password: _passwordController.text.trim(),
                             name: _nameController.text.trim(),
                             role: widget.role,
                           );
-                          if (success && context.mounted) {
-                            Navigator.of(context).popUntil((route) => route.isFirst);
-                          }
+                          // AuthWrapper handles navigation automatically on success
                         },
                   child: authProvider.isLoading
                       ? const SizedBox(
-                          height: 20, width: 20,
+                          height: 20,
+                          width: 20,
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : const Text('Sign Up', style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
