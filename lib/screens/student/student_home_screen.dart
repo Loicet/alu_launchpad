@@ -49,63 +49,105 @@ class _StudentHomeContent extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text('Hello, ${user?.name ?? ''}')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.search, color: Colors.white),
-                label: const Text('Explore Opportunities', style: TextStyle(color: Colors.white)),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ExploreScreen()),
-                  );
-                },
+      body: StreamBuilder<List<Application>>(
+        stream: applicationProvider.applicationsForStudent(user!.uid),
+        builder: (context, snapshot) {
+          final applications = snapshot.data ?? [];
+          final acceptedCount = applications.where((a) => a.status == 'accepted').length;
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE63946),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    label: const Text('Explore Opportunities', style: TextStyle(color: Colors.white)),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('My Applications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<Application>>(
-              stream: applicationProvider.applicationsForStudent(user!.uid),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('You haven\'t applied to anything yet', style: TextStyle(color: Colors.grey)),
-                  );
-                }
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(label: 'Applications', value: '${applications.length}'),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(label: 'Accepted', value: '$acceptedCount'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('My Applications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+              Expanded(
+                child: snapshot.connectionState == ConnectionState.waiting
+                    ? const Center(child: CircularProgressIndicator())
+                    : applications.isEmpty
+                        ? const Center(
+                            child: Text('You haven\'t applied to anything yet', style: TextStyle(color: Colors.grey)),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: applications.length,
+                            itemBuilder: (context, index) {
+                              final app = applications[index];
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ListTile(
+                                  title: Text(app.opportunityTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  subtitle: Text('Status: ${app.status}'),
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
 
-                final applications = snapshot.data!;
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  const _StatCard({required this.label, required this.value});
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: applications.length,
-                  itemBuilder: (context, index) {
-                    final app = applications[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(app.opportunityTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Status: ${app.status}'),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2F4F7),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0D1B3D))),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
     );

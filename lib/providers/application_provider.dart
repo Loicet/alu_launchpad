@@ -15,6 +15,9 @@ class ApplicationProvider extends ChangeNotifier {
   Stream<List<Application>> applicationsForStudent(String studentId) =>
       _service.getApplicationsForStudent(studentId);
 
+  Stream<List<Application>> applicationsForStartup(String startupId) =>
+      _service.getApplicationsForStartup(startupId);
+
   Future<void> updateStatus(String applicationId, String newStatus) async {
     await _service.updateStatus(applicationId, newStatus);
     notifyListeners();

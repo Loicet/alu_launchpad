@@ -35,6 +35,19 @@ class ApplicationService {
         });
   }
 
+  Stream<List<Application>> getApplicationsForStartup(String startupId) {
+    return _applications
+        .where('startupId', isEqualTo: startupId)
+        .snapshots()
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => Application.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+              .toList();
+          list.sort((a, b) => b.appliedAt.compareTo(a.appliedAt));
+          return list;
+        });
+  }
+
   Future<void> updateStatus(String applicationId, String newStatus) async {
     await _applications.doc(applicationId).update({'status': newStatus});
   }
