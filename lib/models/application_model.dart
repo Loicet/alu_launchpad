@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Application {
   final String id;
   final String opportunityId;
@@ -34,7 +36,7 @@ class Application {
       resumeLink: map['resumeLink'] ?? '',
       motivationLetter: map['motivationLetter'] ?? '',
       status: map['status'] ?? 'pending',
-      appliedAt: (map['appliedAt'] ?? DateTime.now()).toDate(),
+      appliedAt: (map['appliedAt'] as Timestamp).toDate(),
     );
   }
 
@@ -48,7 +50,7 @@ class Application {
       'resumeLink': resumeLink,
       'motivationLetter': motivationLetter,
       'status': status,
-      'appliedAt': appliedAt,
+      'appliedAt': Timestamp.fromDate(appliedAt),
     };
   }
 }

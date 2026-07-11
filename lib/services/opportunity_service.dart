@@ -19,11 +19,14 @@ class OpportunityService {
   Stream<List<Opportunity>> getOpportunitiesByStartup(String startupId) {
     return _opportunities
         .where('startupId', isEqualTo: startupId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Opportunity.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-            .toList());
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => Opportunity.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+              .toList();
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list;
+        });
   }
 
   Future<void> postOpportunity(Opportunity opportunity) async {

@@ -12,21 +12,27 @@ class ApplicationService {
   Stream<List<Application>> getApplicationsForOpportunity(String opportunityId) {
     return _applications
         .where('opportunityId', isEqualTo: opportunityId)
-        .orderBy('appliedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Application.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-            .toList());
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => Application.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+              .toList();
+          list.sort((a, b) => b.appliedAt.compareTo(a.appliedAt));
+          return list;
+        });
   }
 
   Stream<List<Application>> getApplicationsForStudent(String studentId) {
     return _applications
         .where('studentId', isEqualTo: studentId)
-        .orderBy('appliedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Application.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-            .toList());
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => Application.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+              .toList();
+          list.sort((a, b) => b.appliedAt.compareTo(a.appliedAt));
+          return list;
+        });
   }
 
   Future<void> updateStatus(String applicationId, String newStatus) async {

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Opportunity {
   final String id;
   final String startupId;
@@ -34,7 +36,7 @@ class Opportunity {
       duration: map['duration'] ?? '',
       description: map['description'] ?? '',
       skills: List<String>.from(map['skills'] ?? []),
-      createdAt: (map['createdAt'] ?? DateTime.now()).toDate(),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
 
@@ -48,7 +50,7 @@ class Opportunity {
       'duration': duration,
       'description': description,
       'skills': skills,
-      'createdAt': createdAt,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 }
