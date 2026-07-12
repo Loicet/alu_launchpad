@@ -1,17 +1,35 @@
-# alu_launchpad
+# ALU LaunchPad
 
-A new Flutter project.
+A mobile app that connects ALU students with student-led startups on campus.
 
-## Getting Started
+Startups get help with development, design, marketing, and more. Students get real internship-style experience without having to compete for spots at big companies. Everyone wins.
 
-This project is a starting point for a Flutter application.
+## What it does
 
-A few resources to get you started if this is your first Flutter project:
+- Sign up as a student or a startup (ALU emails only)
+- Startups post opportunities, students browse and apply
+- Everything updates live — no refreshing needed
+- Startups can shortlist, accept, or reject applicants
+- Students track their application status in real time
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Built with
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter
+- Firebase (Auth + Firestore)
+- Provider for state management
+
+## Getting started
+
+```
+flutter pub get
+flutterfire configure
+flutter run
+```
+
+You'll need your own Firebase project connected via `flutterfire configure` for this to work.
+
+## Why it's built this way
+
+Screens never talk to Firebase directly — everything goes through a provider, which goes through a service. Keeps things easy to change later without breaking the UI.
+
+More detail on the architecture, schema, and design decisions is in the technical report.
