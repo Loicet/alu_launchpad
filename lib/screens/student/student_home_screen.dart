@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/application_provider.dart';
 import '../../models/application_model.dart';
 import 'explore_screen.dart';
+import 'applications_screen.dart';
 import 'student_profile_screen.dart';
 
 class StudentHomeScreen extends StatefulWidget {
@@ -20,17 +21,22 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const _StudentHomeContent(),
+      const ExploreScreen(),
+      const ApplicationsScreen(),
       const StudentProfileScreen(),
     ];
 
     return Scaffold(
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         selectedItemColor: const Color(0xFFE63946),
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explore'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Applications'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -55,73 +61,40 @@ class _StudentHomeContent extends StatelessWidget {
           final applications = snapshot.data ?? [];
           final acceptedCount = applications.where((a) => a.status == 'accepted').length;
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE63946),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    label: const Text('Explore Opportunities', style: TextStyle(color: Colors.white)),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ExploreScreen()),
-                      );
-                    },
-                  ),
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Find opportunities. Build experience. Grow together.',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
+                const SizedBox(height: 20),
+                Row(
                   children: [
-                    Expanded(
-                      child: _StatCard(label: 'Applications', value: '${applications.length}'),
-                    ),
+                    Expanded(child: _StatCard(label: 'Applications', value: '${applications.length}')),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(label: 'Accepted', value: '$acceptedCount'),
-                    ),
+                    Expanded(child: _StatCard(label: 'Accepted', value: '$acceptedCount')),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('My Applications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-              ),
-              Expanded(
-                child: snapshot.connectionState == ConnectionState.waiting
-                    ? const Center(child: CircularProgressIndicator())
-                    : applications.isEmpty
-                        ? const Center(
-                            child: Text('You haven\'t applied to anything yet', style: TextStyle(color: Colors.grey)),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: applications.length,
-                            itemBuilder: (context, index) {
-                              final app = applications[index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                child: ListTile(
-                                  title: Text(app.opportunityTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  subtitle: Text('Status: ${app.status}'),
-                                ),
-                              );
-                            },
-                          ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                const Text('Recent status updates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 12),
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  const Center(child: CircularProgressIndicator())
+                else if (applications.isEmpty)
+                  const Text('You haven\'t applied to anything yet', style: TextStyle(color: Colors.grey))
+                else
+                  ...applications.take(3).map((app) => Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        child: ListTile(
+                          title: Text(app.opportunityTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text('Status: ${app.status}'),
+                        ),
+                      )),
+              ],
+            ),
           );
         },
       ),

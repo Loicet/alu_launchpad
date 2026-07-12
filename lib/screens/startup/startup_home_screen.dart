@@ -6,7 +6,8 @@ import '../../providers/application_provider.dart';
 import '../../models/opportunity_model.dart';
 import '../../models/application_model.dart';
 import 'post_opportunity_screen.dart';
-import 'view_applicants_screen.dart';
+import 'postings_screen.dart';
+import 'applicants_overview_screen.dart';
 import 'startup_profile_screen.dart';
 
 class StartupHomeScreen extends StatefulWidget {
@@ -23,17 +24,22 @@ class _StartupHomeScreenState extends State<StartupHomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const _StartupHomeContent(),
+      const PostingsScreen(),
+      const ApplicantsOverviewScreen(),
       const StartupProfileScreen(),
     ];
 
     return Scaffold(
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         selectedItemColor: const Color(0xFFE63946),
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Postings'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Applicants'),
           BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Profile'),
         ],
       ),
@@ -51,10 +57,8 @@ class _StartupHomeContent extends StatelessWidget {
     final applicationProvider = context.watch<ApplicationProvider>();
     final user = authProvider.appUser;
 
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-
     return Scaffold(
-      appBar: AppBar(title: Text('Welcome, ${user.name}')),
+      appBar: AppBar(title: Text('Welcome, ${user?.name ?? ''}')),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
         label: const Text('Post Opportunity'),
@@ -63,25 +67,18 @@ class _StartupHomeContent extends StatelessWidget {
         },
       ),
       body: StreamBuilder<List<Opportunity>>(
-        stream: opportunityProvider.opportunitiesByStartup(user.uid),
+        stream: opportunityProvider.opportunitiesByStartup(user!.uid),
         builder: (context, oppSnapshot) {
-          if (oppSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
           final opportunities = oppSnapshot.data ?? [];
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
                     Expanded(
-                      child: _StatCard(
-                        label: 'Active Opportunities',
-                        value: '${opportunities.length}',
-                      ),
+                      child: _StatCard(label: 'Active Opportunities', value: '${opportunities.length}'),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -95,43 +92,26 @@ class _StartupHomeContent extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              Expanded(
-                child: opportunities.isEmpty
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            'You haven\'t posted any opportunities yet.\nTap the button below to get started.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey),
-                          ),
+                const SizedBox(height: 24),
+                const Text('Recent postings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 12),
+                if (oppSnapshot.connectionState == ConnectionState.waiting)
+                  const Center(child: CircularProgressIndicator())
+                else if (opportunities.isEmpty)
+                  const Text(
+                    'You haven\'t posted any opportunities yet.',
+                    style: TextStyle(color: Colors.grey),
+                  )
+                else
+                  ...opportunities.take(3).map((opp) => Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        child: ListTile(
+                          title: Text(opp.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text('${opp.locationType} · ${opp.duration}'),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: opportunities.length,
-                        itemBuilder: (context, index) {
-                          final opp = opportunities[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(12),
-                              title: Text(opp.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('${opp.locationType} · ${opp.duration}'),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => ViewApplicantsScreen(opportunity: opp)),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
+                      )),
+              ],
+            ),
           );
         },
       ),
